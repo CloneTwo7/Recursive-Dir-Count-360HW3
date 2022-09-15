@@ -1,0 +1,1 @@
+Assignment #3 recursively reads in a series of directories, counting the number of readable files that exist within that directory and all subsequent directories.
