@@ -38,6 +38,7 @@ int readable(char *inputPath) {
 		if((dr = opendir(workingPath)) == NULL) {
 			chdir("..");
 			closedir(dr);
+			return (-errno);
 		} else {
 			if(chdir(workingPath)) {
 				return (-errno);
@@ -63,7 +64,6 @@ int readable(char *inputPath) {
 			closedir(dr);
 		}
 	} 
-
 	return(count);
 }
 
