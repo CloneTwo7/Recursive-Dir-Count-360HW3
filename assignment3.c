@@ -23,7 +23,8 @@ int readable(char *inputPath) {
 	} else {
 		strcpy(workingPath, inputPath);
 	}
-	if(chdir(workingPath) != 0) return (-1);
+
+	if(chdir(workingPath)) return (-errno);
 	getcwd(workingPath, PATH_MAX);
 
 	if(isReadableFile(workingPath)) {
@@ -39,7 +40,7 @@ int readable(char *inputPath) {
 			closedir(dr);
 		} else {
 			if(chdir(workingPath)) {
-				return (-1);
+				return (errno);
 			}
 			/*The following loop traverses all elements of the directory
 			 *if another directory is discovered, it adds the count of
@@ -59,6 +60,7 @@ int readable(char *inputPath) {
 		}
 	} 
 
+	if(count < 0) count = 0;
 	return(count);
 }
 
