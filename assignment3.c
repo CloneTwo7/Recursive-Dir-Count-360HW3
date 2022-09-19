@@ -13,55 +13,61 @@ int isReadableFile(char*);
 
 int readable(char *inputPath) {
 	int count = 0; //counts the readable files;
-
 	/*the following sets the workable path to the
 	 * current working directory if the char* passed
 	 * was NULL*/
 	char workingPath[PATH_MAX];
+	getcwd(workingPath, PATH_MAX);
 	if(inputPath == NULL) {
 		getcwd(workingPath, PATH_MAX);
 	} else {
 		strcpy(workingPath, inputPath);
 	}
+	if(chdir(workingPath) != 0) return (-1);
+	getcwd(workingPath, PATH_MAX);
 
-	if(isDirectory(workingPath)) {
+	if(isReadableFile(workingPath)) {
+		count++;
+	}
+
+	else if(isDirectory(workingPath)) {
 		DIR *dr;
 		struct dirent *entry;
-		
-		chdir(workingPath);
 
 		if((dr = opendir(workingPath)) == NULL) {
 			chdir("..");
 			closedir(dr);
-			return (0);
 		} else {
+			if(chdir(workingPath)) {
+				return (-1);
+			}
 			/*The following loop traverses all elements of the directory
 			 *if another directory is discovered, it adds the count of
 			 * that directory to the total count for this function*/
 			while((entry = readdir(dr))!=NULL) {
 				if(isReadableFile(entry->d_name)) {
+					/* if it is a readable file, increment count by 1 */
 					printf("readable: %s\n", entry->d_name);
 					count++;
 				} else if(isDirectory(entry->d_name)) {
+					/*increment by the readable() value of the directory if
+					 *the entry is a directory */
 					printf("directory: %s\n", entry->d_name);
 					count += readable(entry->d_name);
 				}
 			}
 			chdir("..");
 			closedir(dr);
-			return count;
 		}
+	} 
 
-
-	} else if(isReadableFile(workingPath)) {
-		return (count += 1);
-	}
+	return(count);
 }
 
 
 int isDirectory(char *path) {
 	struct stat sstat, *pstat = &sstat;
-	if(stat(path, pstat) == 0 && path[0] != '.') { 
+	if(lstat(path, pstat) == 0 && path[0] != '.') { 
 		return ((S_ISDIR(pstat->st_mode)) ? 1 : 0 );
 	}
 	return(0);
@@ -69,9 +75,7 @@ int isDirectory(char *path) {
 
 int isReadableFile(char *path) {
 	struct stat sstat, *pstat = &sstat;
-
-
-	if(stat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
+	if(lstat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
 		return (pstat->st_mode & S_IRUSR);
 	}
 	return (0);
