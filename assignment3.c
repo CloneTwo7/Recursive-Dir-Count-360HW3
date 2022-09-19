@@ -27,13 +27,27 @@ int readable(char *inputPath) {
 	if(isDirectory(workingPath)) {
 		DIR *dr;
 		struct dirent *entry;
+		
+		chdir(workingPath);
 
 		if((dr = opendir(workingPath)) == NULL) {
+			chdir("..");
+			closedir(dr);
 			return (0);
 		} else {
+			/*The following loop traverses all elements of the directory
+			 *if another directory is discovered, it adds the count of
+			 * that directory to the total count for this function*/
 			while((entry = readdir(dr))!=NULL) {
-				printf("%s\t\t%10d\n", entry->d_name, isReadableFile(entry->d_name));
+				if(isReadableFile(entry->d_name)) {
+					printf("readable: %s\n", entry->d_name);
+					count++;
+				} else if(isDirectory(entry->d_name)) {
+					printf("directory: %s\n", entry->d_name);
+					count += readable(entry->d_name);
+				}
 			}
+			chdir("..");
 			closedir(dr);
 			return count;
 		}
@@ -41,25 +55,24 @@ int readable(char *inputPath) {
 
 	} else if(isReadableFile(workingPath)) {
 		return (count += 1);
-	} else {
-		return (0);
 	}
 }
 
 
 int isDirectory(char *path) {
 	struct stat sstat, *pstat = &sstat;
-	if(stat(path, pstat) == 0) { 
+	if(stat(path, pstat) == 0 && path[0] != '.') { 
 		return ((S_ISDIR(pstat->st_mode)) ? 1 : 0 );
 	}
-	return(-1);
+	return(0);
 } 
 
 int isReadableFile(char *path) {
 	struct stat sstat, *pstat = &sstat;
 
-	if(stat(path, pstat) == 0 && (S_ISREG(pstat->st_mode))) {
+
+	if(stat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
 		return (pstat->st_mode & S_IRUSR);
 	}
-	return (-1);
+	return (0);
 } 
