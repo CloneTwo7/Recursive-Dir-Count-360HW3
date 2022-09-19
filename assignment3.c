@@ -47,12 +47,10 @@ int readable(char *inputPath) {
 			while((entry = readdir(dr))!=NULL) {
 				if(isReadableFile(entry->d_name)) {
 					/* if it is a readable file, increment count by 1 */
-					printf("readable: %s\n", entry->d_name);
 					count++;
 				} else if(isDirectory(entry->d_name)) {
 					/*increment by the readable() value of the directory if
 					 *the entry is a directory */
-					printf("directory: %s\n", entry->d_name);
 					count += readable(entry->d_name);
 				}
 			}
