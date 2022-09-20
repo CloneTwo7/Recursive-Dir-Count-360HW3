@@ -28,6 +28,8 @@ int readable(char *inputPath) {
 	if(isReadableFile(workingPath)) {
 		count++;
 		return(count);
+	} else if(isNonReadableFile(workingPath)) {
+		return(0);
 	}
 
 	if(chdir(workingPath)) return (-errno);
@@ -95,4 +97,5 @@ int isNonReadableFile(char *path) {
 	if(lstat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
 		return(!(pstat->st_mode & S_IRUSR));
 	}
+	return(0);
 }
