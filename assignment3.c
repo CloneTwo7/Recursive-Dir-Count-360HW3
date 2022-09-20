@@ -10,6 +10,7 @@
 
 int isDirectory(char*);
 int isReadableFile(char*);
+int isNonReadableFile(char*);
 
 int readable(char *inputPath) {
 	int count = 0; //counts the readable files;
@@ -24,15 +25,16 @@ int readable(char *inputPath) {
 		strcpy(workingPath, inputPath);
 	}
 
+	if(isReadableFile(workingPath)) {
+		count++;
+		return(count);
+	}
+
 	if(chdir(workingPath)) return (-errno);
 	getcwd(workingPath, PATH_MAX);
 
 	int check = 0; /* check verifies that no errno was returned */
-	if(check = isReadableFile(workingPath)) {
-		if(check <= 0) return (-errno);
-		count++;
-	}
-	else if(check = isDirectory(workingPath)) {
+	if(check = isDirectory(workingPath)) {
 		if(check <= 0) return (-errno);
 		DIR *dr;
 		struct dirent *entry;
@@ -87,3 +89,10 @@ int isReadableFile(char *path) {
 	}
 	return (0);
 } 
+
+int isNonReadableFile(char *path) {
+	struct stat sstat, *pstat = &sstat;
+	if(lstat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
+		return(!(pstat->st_mode & S_IRUSR));
+	}
+}
