@@ -27,16 +27,20 @@ int readable(char *inputPath) {
 	if(chdir(workingPath)) return (-errno);
 	getcwd(workingPath, PATH_MAX);
 
-	if(isReadableFile(workingPath)) {
+	int check = 0; /* check verifies that no errno was returned */
+	if(check = isReadableFile(workingPath)) {
+		if(check <= 0) return (-errno);
 		count++;
 	}
-
-	else if(isDirectory(workingPath)) {
+	else if(check = isDirectory(workingPath)) {
+		if(check <= 0) return (-errno);
 		DIR *dr;
 		struct dirent *entry;
 
+		/*Appropriate error checking in case cannot
+		 * open the directory*/
 		if((dr = opendir(workingPath)) == NULL) {
-			chdir("..");
+			if(chdir("..")) return (-errno);
 			closedir(dr);
 			return (-errno);
 		} else {
@@ -60,7 +64,7 @@ int readable(char *inputPath) {
 					}
 				}
 			}
-			chdir("..");
+			if(chdir("..")) return (-errno);
 			closedir(dr);
 		}
 	} 
