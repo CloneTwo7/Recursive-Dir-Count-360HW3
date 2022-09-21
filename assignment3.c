@@ -61,7 +61,9 @@ int readable(char *inputPath) {
 				} else if(isDirectory(entry->d_name)) {
 					/*increment by the readable() value of the directory if
 					 *the entry is a directory */
-					count += readable(entry->d_name);
+					int flag = readable(entry->d_name);
+					if(flag < 0) flag = 0;
+					count += flag;
 				}
 			}
 			if(chdir("..")) return (-errno);
