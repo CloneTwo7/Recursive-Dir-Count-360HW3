@@ -61,11 +61,7 @@ int readable(char *inputPath) {
 				} else if(isDirectory(entry->d_name)) {
 					/*increment by the readable() value of the directory if
 					 *the entry is a directory */
-					int flag = readable(entry->d_name);
-					if(flag <= 0 ) flag = 0;
-					else {
-						count += flag;
-					}
+					count += readable(entry->d_name);
 				}
 			}
 			if(chdir("..")) return (-errno);
@@ -78,7 +74,8 @@ int readable(char *inputPath) {
 
 int isDirectory(char *path) {
 	struct stat sstat, *pstat = &sstat;
-	if(lstat(path, pstat) == 0 && path[0] != '.') { 
+	if(!strcmp(path, ".") || !strcmp(path, "..")) return (0);
+	if(lstat(path, pstat) == 0) { 
 		return ((S_ISDIR(pstat->st_mode)) ? 1 : 0 );
 	}
 	return(0);
