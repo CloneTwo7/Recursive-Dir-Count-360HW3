@@ -25,6 +25,8 @@ int readable(char *inputPath) {
 		strcpy(workingPath, inputPath);
 	}
 
+	/* First, check if the path passed is a file
+	 * If it is, check if it is readable or nonreadable*/
 	if(isReadableFile(workingPath)) {
 		count++;
 		return(count);
@@ -32,9 +34,13 @@ int readable(char *inputPath) {
 		return(0);
 	}
 
+	/* Since the path is not a file, we change into
+	 * the path provided so we ensure we're operating
+	 * in the directory provided */
 	if(chdir(workingPath)) return (-errno);
 	getcwd(workingPath, PATH_MAX);
 
+	/* Now we can start processing the directory recursively */
 	int check = 0; /* check verifies that no errno was returned */
 	if(check = isDirectory(workingPath)) {
 		if(check <= 0) return (-errno);
@@ -44,14 +50,13 @@ int readable(char *inputPath) {
 		/*Appropriate error checking in case cannot
 		 * open the directory*/
 		if((dr = opendir(workingPath)) == NULL) {
+			/*If the directory is null, we return errno, close, and return*/
 			if(chdir("..")) return (-errno);
 			closedir(dr);
 			return (-errno);
 		} else {
-			if(chdir(workingPath)) {
-				return (-errno);
-			}
-			/*The following loop traverses all elements of the directory
+			/*Otherwise, begin navigating the contents of the directory...
+			 * The following loop traverses all elements of the directory
 			 *if another directory is discovered, it adds the count of
 			 * that directory to the total count for this function*/
 			while((entry = readdir(dr))!=NULL) {
@@ -66,14 +71,18 @@ int readable(char *inputPath) {
 					count += flag;
 				}
 			}
+			//Navigate out of that directory before returning
 			if(chdir("..")) return (-errno);
 			closedir(dr);
 		}
 	} 
+	//return the total count incremented
 	return(count);
 }
 
 
+/* The following helper directories exist to help smooth over some repetetive calls
+ * mainly, the work to check if a directory passed to it is readable and exists*/
 int isDirectory(char *path) {
 	struct stat sstat, *pstat = &sstat;
 	if(!strcmp(path, ".") || !strcmp(path, "..")) return (0);
@@ -83,6 +92,7 @@ int isDirectory(char *path) {
 	return(0);
 } 
 
+/* Check if the file passed to it is readable, regular, and exists */
 int isReadableFile(char *path) {
 	struct stat sstat, *pstat = &sstat;
 	if(lstat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
@@ -91,6 +101,7 @@ int isReadableFile(char *path) {
 	return (0);
 } 
 
+/*Check if the file passed to it is NOT readable, regular, and exists*/
 int isNonReadableFile(char *path) {
 	struct stat sstat, *pstat = &sstat;
 	if(lstat(path, pstat) == 0 && (S_ISREG(pstat->st_mode)) && !(isDirectory(path))) {
